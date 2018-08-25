@@ -1,0 +1,110 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+.App-header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+  color: white;
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+.area_1{
+  position: relative;
+  width: 100%;
+  height: 980px;
+}
+
+.area_2{
+  position: absolute;
+  top: 0px;
+  left: 300px;
+  width: 500px;
+  height: 980px;
+  border: solid  #222;
+  border-width: 0 1px 0 1px;
+}
+
+.animation{
+  background-color: blue;
+  width: 200px;
+  transition: all 300ms 0s ease;
+}
+
+.animation:hover{
+  background-color: red;
+  width: 300px;
+}
+
+.animation_before{
+  background-color: blue;
+  width: 100px;
+  animation: animation_move 300s linear 0s 5 normal both running;
+}
+
+.animation_after{
+  background-color: red;
+  width: 200px;
+  transform: translateX(300px);
+  transition: all 4000ms 0ms ease;
+}
+
+@keyframes animation_move {
+  0% {
+  }
+  100% {
+    transform: translateY(300px);
+  }
+}
+
+@keyframes rnd_animation {
+  0% {
+    transform: translateX(0px);
+  }
+  100% {
+    transform: translateX(300px);
+  }
+}
+
+.rtg-appear{
+  background-color: blue;
+  width: 200px;
+}
+
+.rtg-appear-active{
+  background-color: red;
+  width: 200px;
+  transform: translateX(300px);
+  transition: all 4000ms 0ms ease;
+}
+
+.element_inside{
+  word-wrap: break-word;
+  width: 100%;
+  height: 100%;
+}
+
+textarea.element_input{
+  resize: none;
+  /** border: none;**/
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

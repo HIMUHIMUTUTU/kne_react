@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1388534400000,
+        "author_id": 1,
+        "text": "高島element1"
+    },
+    {
+        "id": 1388534400000,
+        "author_id": 1,
+        "text": "高島element2"
+    },
+    {
+        "id": 1388534400000,
+        "author_id": 1,
+        "text": "高島element3"
+    },    
+    {
+        "id": 1388534400000,
+        "author_id": 2,
+        "text": "生田element1"
+    },    
+    {
+        "id": 1388534400000,
+        "author_id": 2,
+        "text": "生田element2"
+    },    
+    {
+        "id": 1388534400000,
+        "author_id": 3,
+        "text": "西本先生element1"
+    },
+    {
+        "id": 1388534400000,
+        "author_id": 3,
+        "text": "西本先生element2"
+    }
+]

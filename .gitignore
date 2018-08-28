@@ -12,6 +12,9 @@
 #previous files
 /past
 
+#db
+/server/kne_element.db
+
 # misc
 .DS_Store
 .env.local

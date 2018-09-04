@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<title>KNE | input</title>
+
+	<!-- Original javascript -->
+	<script type="text/javascript" src="javascript/ll.js"></script>
+
+	<!-- Original stylesheet -->
+	<link rel='stylesheet' type='text/css' href='stylesheet/index.css' />
+</head>
+
+<body>
+	<h1>element_input</h1>
+	<form action="/element_input" method="post" class="board-form">
+		<p>mode:<input type="text" id="mode" name="mode" maxlength="7" value="<%= initial_value[0] %>"></p>
+		<p>author_id:<input type="text" id="author_id" name="author_id" maxlength="3" value="<%= initial_value[1] %>"></p>
+		<textarea id="kne_element" name="kne_element" cols="80" rows="4" maxlength="160"></textarea>
+		<p><button type="submit" class="submit">insert</button></p>
+	</form>
+	<table border="1px">
+		<tr>
+			<th>id</th>
+			<th>type</th>
+			<th>author_id</th>
+			<th>content</th>
+		</tr>
+		<% for(var i=0; i < kne_element.length; i++){ %>
+			<tr>
+				<td>
+					<%= kne_element[i].id %>
+				</td>
+				<td>
+					<%= kne_element[i].mode %>
+				</td>
+				<td>
+					<%= kne_element[i].author_id %>
+				</td>
+				<td>
+					<%= kne_element[i].text %>
+				</td>
+			</tr>
+			<% } %>
+	</table>
+</body>
+</html>

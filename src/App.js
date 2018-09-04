@@ -7,27 +7,27 @@ import elements_data from './elements.json'
 import io from "socket.io-client";
 console.log(elements_data);
 
-const common = {self_area_showtime:1 * 60 * 1000, others_area_showtime:1 * 60 * 1000, tss1:10* 60 * 1000, tss2: 5* 60 * 1000, tss3: 3 * 60 * 1000, save_area_x: 0, temp_save_area1_x: 500, temp_save_area2_x: 650, temp_save_area3_x: 800, self_element_area_x: 950, others_element_area_x: 1100, all_area_top_y: 50, all_area_bottom_y:980};
+const common = {self_area_showtime:2 * 60 * 1000, others_area_showtime:2 * 60 * 1000, tss1:10* 60 * 1000, tss2: 5* 60 * 1000, tss3: 2.5 * 60 * 1000, save_area_x: 0, temp_save_area1_x: 500, temp_save_area2_x: 650, temp_save_area3_x: 800, self_element_area_x: 950, others_element_area_x: 1100, all_area_top_y: 50, all_area_bottom_y:980};
 
-class Io extends React.Component{
+class Menu extends React.Component{
   constructor(props){
       super(props);
-
-      this.state = {
-          username: '',
-          message: '',
-          messages: []
-      };
-
-      this.socket = io('localhost:8080');
-      this.socket.emit('load_request', 'save_massage');
-      this.socket.on('load', function (_data) {
-        console.log(_data);
-      })
   }
 
   render() {
-    return (<div>control</div>);
+    let con_disp = "connecting..."
+    if(this.props.loaded){
+      con_disp = "connected"
+    }
+    return (
+    <div className="control">
+    <ul className="control_ul">
+    <li><strong>M-TC</strong></li>
+    <li>{con_disp}</li>
+    <li><a href="http://localhost:8080/element_input" target="_blank">element_admin</a></li>
+    </ul>
+    </div>
+    );
   }
 }
 
@@ -41,7 +41,7 @@ class Drawrnd extends React.Component {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      border: 'solid 1px #ddd'
+      border: 'solid 1px #fff'
     }
     this.state = {
         element: this.props.element_info,
@@ -234,7 +234,7 @@ class Drawrnd extends React.Component {
         }}
         onDragStop={(e, d) => {
           this.setState({pos: { x: d.x, y: d.y }});
-          this.change_static_style({'border': 'solid 1px #ddd'})
+          this.change_static_style({'border': 'solid 1px #fff'})
           this.start_move({x:d.x, y:d.y})
           console.log("dragstop")
         }}
@@ -252,7 +252,7 @@ class Drawrnd extends React.Component {
         }}
         onResizeStop={(e, direction, ref, delta, position) => {
           this.setState({pos: { x: position.x, y: position.y }});
-          this.change_static_style({'border': 'solid 1px #ddd'})
+          this.change_static_style({'border': 'solid 1px #fff'})
           this.start_move({x:position.x, y:position.y})
         }}
       >
@@ -266,7 +266,7 @@ function Element_field(props){
       if(props.input_mode){
         return <textarea autoFocus className="element_input" onBlur={(event) => {props.onBlur({input_mode:false, element_text:event.target.value})}} defaultValue={props.element_text}></textarea>
       }else{
-        return  <div className="element_inside" onDoubleClick={() => {props.onDoubleClick({input_mode:true, element_text:""})}}>{props.element_text}</div>
+        return  <div className="element_inside" onDoubleClick={() => {props.onDoubleClick({input_mode:true, element_text:""})}}><pre>{props.element_text}</pre></div>
       }
 }
 
@@ -301,30 +301,42 @@ class Element extends React.Component {
 class App extends React.Component {
   constructor(props){
     super(props);
-    this.state = {elements: elements_data}; 
+    this.state = {loaded:false, elements: elements_data}; 
+    this.socket = io('localhost:8080');
+  }
+
+  componentDidMount(){
+    const self = this;
+    this.socket.emit('load_request', 'save_massage');
+    this.socket.on('load', function (_data) {
+      console.log(_data);
+      console.log(self.state);
+      self.setState({loaded:true,elements:_data[0].val});
+    });
   }
 
   render() {
-    const drawrnds = [];
-    for (let i = 0; i < this.state.elements.length; i++) {
-      drawrnds.push(
-        <Drawrnd key={i} element_info={this.state.elements[i]} />
-      )
+      const drawrnds = [];
+      for (let i = 0; i < this.state.elements.length; i++) {
+        drawrnds.push(
+          <Drawrnd key={i} element_info={this.state.elements[i]} />
+        )
     }
     return (
       <div>
-        {/* <Io /> */}
         <div class="area_1"></div>
         <div class="area_21"></div>
         <div class="area_22"></div>
         <div class="area_23"></div>
         <div class="area_3"></div>
-        {/* <Button onClick={() => this.buttonClick()}/> */}
-        {drawrnds}
-        {/*<div style="position: absolute;top: 5;left:250px">保存領域</div> */}
-        {/*<div style="position: absolute;top: 5;left:650px">自分element流(流速小)</div> */}
-        {/*<div style="position: absolute;top: 5;left:1000px">組織element流(流速大)<br />誰の物かは分からない</div> */}
+        <Menu loaded={this.state.loaded}/>
+        {(() => {
+          if (this.state.loaded) {
+            return drawrnds 
+          }
+        })()}
       </div>
+
     );
   }
 }

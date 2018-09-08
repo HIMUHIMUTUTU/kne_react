@@ -91,7 +91,7 @@ textarea.element_input{
 
 pre {
   display: inline;
-  border: #222 1px solid;
+  /** border: #222 1px solid; **/
 }
 
 div.control{

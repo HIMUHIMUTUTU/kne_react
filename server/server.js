@@ -27,11 +27,7 @@ io.on('connection', function(socket){
         console.log("startload")
         var db = dirty('kne_element.db');
         db.on('load', function () {
-            var loaddata = []
-            db.forEach(function (key, val) {
-                loaddata.push({ key, val })
-            });
-            console.log(loaddata);
+            loaddata = {kne_element: db.get("kne_element"), workspace: db.get("workspace")}
             socket.emit('load', loaddata);
         })
     })
@@ -40,7 +36,33 @@ io.on('connection', function(socket){
         console.log("startsave")
         var db = dirty('kne_element.db');
         db.on('load', function () {
-            db.set('data', _data, function () {
+            //update element
+            let id_old_new = [];
+            db.update('kne_element', function(_currentdata){
+                let len = _currentdata.length;
+                let new_element = _currentdata;
+                for(let i = 0; i <_data.element.length; i++){
+                    new_element.push({id:len+i+1, mode:"dev", author_id:"1", text:_data.element[i].text});
+                    //set pair of old id and new id
+                    id_old_new.push([_data.element[i].id, len+i+1]);
+                }
+                return new_element; 
+            });
+            console.log("es")
+            
+            //update workspace
+            //replace element id to update element id
+            let new_workspace =  _data.workspace;
+            for(let i = 0; i < new_workspace.length; i++){
+                for(let ii = 0; ii < id_old_new.length; ii++){
+                    if(new_workspace[i][0] == id_old_new[ii][0]){
+                        new_workspace[i][0] = id_old_new[ii][1];
+                    }
+                }
+            }
+            console.log("ws")
+            //db input
+            db.set('workspace', new_workspace, function () {
                 console.log('saved')
             });
         })

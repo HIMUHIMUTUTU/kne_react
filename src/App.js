@@ -3,11 +3,26 @@ import { render } from 'react-dom';
 import './App.css';
 import Rnd from 'react-rnd';
 import { CSSTransition } from 'react-transition-group';
-import elements_data from './elements.json'
 import io from "socket.io-client";
-console.log(elements_data);
 
-const common = {self_area_showtime:2 * 60 * 1000, others_area_showtime:2 * 60 * 1000, tss1:10* 60 * 1000, tss2: 5* 60 * 1000, tss3: 2.5 * 60 * 1000, save_area_x: 0, temp_save_area1_x: 500, temp_save_area2_x: 650, temp_save_area3_x: 800, self_element_area_x: 950, others_element_area_x: 1100, all_area_top_y: 50, all_area_bottom_y:980};
+const common = {self_area_showtime:2 * 60 * 1000, others_area_showtime:2 * 60 * 1000, tss1:15* 60 * 1000, tss2: 10* 60 * 1000, tss3: 5 * 60 * 1000, save_area_x: 0, temp_save_area1_x: 500, temp_save_area2_x: 650, temp_save_area3_x: 800, self_element_area_x: 950, others_element_area_x: 1100, all_area_top_y: 50, all_area_bottom_y:980};
+const common_save = {element:[], workspace:[]};
+
+function detect_area(_x) {
+    if (_x <= common.temp_save_area1_x) {
+      return "save"
+    } else if (_x <= common.temp_save_area2_x && _x > common.temp_save_area1_x) {
+      return "temp_self1"
+    } else if (_x <= common.temp_save_area3_x && _x > common.temp_save_area2_x) {
+      return "temp_self2"
+    } else if (_x <= common.self_element_area_x && _x > common.temp_save_area3_x) {
+      return "temp_self3"
+    } else if (_x <= common.others_element_area_x && _x > common.self_element_area_x) {
+      return "self"
+    } else {
+      return "other"
+    }
+  }
 
 class Menu extends React.Component{
   constructor(props){
@@ -25,6 +40,7 @@ class Menu extends React.Component{
     <li><strong>M-TC</strong></li>
     <li>{con_disp}</li>
     <li><a href="http://localhost:8080/element_input" target="_blank">element_admin</a></li>
+    <li><a href="#" onClick={this.props.onClick}>save</a></li>
     </ul>
     </div>
     );
@@ -36,7 +52,7 @@ class Drawrnd extends React.Component {
   constructor(props){
     super(props);
     this.inputRef = React.createRef();
-    let initialpos = this.gen_initialpos(this.props.element_info.author_id);
+    let initialpos = this.gen_initialpos(this.props.position, this.props.element_info.author_id);
     this.basic_style = {
       display: 'flex',
       alignItems: 'center',
@@ -44,10 +60,14 @@ class Drawrnd extends React.Component {
       border: 'solid 1px #fff'
     }
     this.state = {
-        element: this.props.element_info,
+        id: this.props.element_info.id,
+        mode: this.props.element_info.mode,
+        author_id: this.props.element_info.author_id,
+        text: this.props.element_info.text,
         pos: { x: initialpos.x, y: initialpos.y },
         size: {width: 100, height: 100 },
         style: this.basic_style,
+        modified: false,
         input_mode: false
       }
   }
@@ -85,30 +105,20 @@ class Drawrnd extends React.Component {
     return "all " + t +"ms " + "0s linear"; 
   }
 
-  detect_area(_x) {
-    if (_x <= common.temp_save_area1_x) {
-      return "save"
-    } else if (_x <= common.temp_save_area2_x && _x > common.temp_save_area1_x) {
-      return "temp_self1"
-    } else if (_x <= common.temp_save_area3_x && _x > common.temp_save_area2_x) {
-      return "temp_self2"
-    } else if (_x <= common.self_element_area_x && _x > common.temp_save_area3_x) {
-      return "temp_self3"
-    } else if (_x <= common.others_element_area_x && _x > common.self_element_area_x) {
-      return "self"
+  
+
+  gen_initialpos(_position , _author_id){
+    if (_position != 0) {
+        return { x: _position[0], y: _position[1] }
     } else {
-      return "other"
+      if (_author_id == 1) {
+        return { x: common.self_element_area_x + Math.random() * (common.others_element_area_x - 50 - common.self_element_area_x), y: common.all_area_top_y + Math.random() * (common.all_area_bottom_y - common.all_area_top_y) }
+      } else {
+        return { x: common.others_element_area_x + Math.random() * (1250 - common.others_element_area_x), y: common.all_area_top_y + Math.random() * (common.all_area_bottom_y - common.all_area_top_y) }
+      }
     }
   }
 
-  gen_initialpos(_author_id){
-    if (_author_id == 1) {
-      return {x: common.self_element_area_x + Math.random() * (common.others_element_area_x - 50 - common.self_element_area_x), y: common.all_area_top_y +  Math.random() * (common.all_area_bottom_y - common.all_area_top_y)}
-    }else{
-      return {x: common.others_element_area_x + Math.random() * (1250 - common.others_element_area_x), y:  common.all_area_top_y +  Math.random() * (common.all_area_bottom_y - common.all_area_top_y)}
-    }
-
-  }
   change_pos(current_state) {
     this.setState(
       {
@@ -137,7 +147,7 @@ class Drawrnd extends React.Component {
 
   start_move(current_state){
 
-    let area = this.detect_area(current_state.x)
+    let area = detect_area(current_state.x)
     let showtime;
     if(area == "self"){
       showtime = common.self_area_showtime 
@@ -191,7 +201,8 @@ class Drawrnd extends React.Component {
    if(!current_state.input_mode){
     this.setState(
       {
-       element : {text: current_state.element_text}
+       text: current_state.element_text,
+       modified: true
       }
     )
    }
@@ -256,7 +267,7 @@ class Drawrnd extends React.Component {
           this.start_move({x:position.x, y:position.y})
         }}
       >
-        <Element_field  onClick={() => {console.log("oc")}} input_mode={this.state.input_mode} element_text={this.state.element.text} onDoubleClick={(cim) => this.change_input_mode(cim)} onBlur={(cim) => this.change_input_mode(cim)} />
+        <Element_field  onClick={() => {console.log("oc")}} input_mode={this.state.input_mode} element_text={this.state.text} onDoubleClick={(cim) => this.change_input_mode(cim)} onBlur={(cim) => this.change_input_mode(cim)} />
       </Rnd>
     );
   }
@@ -291,18 +302,46 @@ class Button extends React.Component {
   }
 }
 
+/** 
 class Element extends React.Component {
   constructor(props){
     super(props);
-    this.state.elements = elements_data; 
+    this.state.element = element_data; 
   }
 }
+**/
 
 class App extends React.Component {
   constructor(props){
     super(props);
-    this.state = {loaded:false, elements: elements_data}; 
+    this.state = {loaded:false}; 
     this.socket = io('localhost:8080');
+  }
+
+  upload_save(_data){
+    common_save.element = _data.kne_element;
+    common_save.workspace = _data.workspace;
+  }
+
+  collect_state(){
+    console.log(common_save);
+    console.log("collect_state");
+    console.log(this.inputRef[0].current);
+    let element = [];
+    let workspace = [];
+    for(let i = 0; i < this.inputRef.length; i++){
+      let ir = this.inputRef[i].current.state;
+      if(ir.modified){
+        element.push({id:ir.id, text:ir.text});
+        ir.modified = false;
+      }
+      if(detect_area(ir.pos.x) == "save"){
+        workspace.push([ir.id, ir.pos.x, ir.pos.y]);
+      }
+    }
+    //this.upload_save({element:element, workspace:workspace});
+    console.log(element);
+    this.socket.emit('save', {element:element, workspace:workspace});
   }
 
   componentDidMount(){
@@ -310,17 +349,37 @@ class App extends React.Component {
     this.socket.emit('load_request', 'save_massage');
     this.socket.on('load', function (_data) {
       console.log(_data);
-      console.log(self.state);
-      self.setState({loaded:true,elements:_data[0].val});
+      self.inputRef = [];
+      for(let i = 0; i < _data.kne_element.length; i++){
+        self.inputRef.push(React.createRef());
+      }
+      self.upload_save(_data);
+      self.setState({loaded:true});
     });
   }
 
   render() {
-      const drawrnds = [];
-      for (let i = 0; i < this.state.elements.length; i++) {
-        drawrnds.push(
-          <Drawrnd key={i} element_info={this.state.elements[i]} />
-        )
+    const drawrnds = [];
+    if (common_save.element.length != 0) {
+
+      let work_ids = [];
+      for (let i = 0; i < common_save.workspace.length; i++) {
+        work_ids.push(common_save.workspace[i][0])
+      }
+      console.log(work_ids);
+
+      for (let i = 0; i < common_save.element.length; i++) {
+        let wi = work_ids.indexOf(common_save.element[i].id);
+        if (wi >= 0) {
+          drawrnds.push(
+            <Drawrnd key={i} ref={this.inputRef[i]} element_info={common_save.element[i]} position={[common_save.workspace[wi][1], common_save.workspace[wi][2]]} />
+          )
+        } else {
+          drawrnds.push(
+            <Drawrnd key={i} ref={this.inputRef[i]} element_info={common_save.element[i]} position={0} />
+          )
+        }
+      }
     }
     return (
       <div>
@@ -329,10 +388,10 @@ class App extends React.Component {
         <div class="area_22"></div>
         <div class="area_23"></div>
         <div class="area_3"></div>
-        <Menu loaded={this.state.loaded}/>
+        <Menu loaded={this.state.loaded} onClick={() => {this.collect_state()}}/>
         {(() => {
           if (this.state.loaded) {
-            return drawrnds 
+            return drawrnds
           }
         })()}
       </div>
@@ -340,5 +399,5 @@ class App extends React.Component {
     );
   }
 }
-  
+
 export default App;

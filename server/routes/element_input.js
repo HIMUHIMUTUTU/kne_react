@@ -17,7 +17,7 @@ router.post('/', function (req, res, next) {
 		if (!Array.isArray(pe)) {
 			pe = [];
 		}
-		pe.push({ "id": pe.length + 1, "mode": req.body.mode, "author_id": req.body.author_id, "text": req.body.kne_element });
+		pe.push({ id: pe.length + 1, mode: req.body.mode, author_id: req.body.author_id, text: req.body.kne_element });
 		console.log(pe)
 
 		db.set('kne_element', pe, function () {

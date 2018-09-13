@@ -5,7 +5,7 @@ import Rnd from 'react-rnd';
 import { CSSTransition } from 'react-transition-group';
 import io from "socket.io-client";
 
-const common = {self_area_showtime:2 * 60 * 1000, others_area_showtime:2 * 60 * 1000, tss1:15* 60 * 1000, tss2: 10* 60 * 1000, tss3: 5 * 60 * 1000, save_area_x: 0, temp_save_area1_x: 500, temp_save_area2_x: 650, temp_save_area3_x: 800, self_element_area_x: 950, others_element_area_x: 1100, all_area_top_y: 50, all_area_bottom_y:980};
+const common = {self_area_showtime:2 * 60 * 1000, others_area_showtime:2 * 60 * 1000, tss1:15* 60 * 1000, tss2: 10* 60 * 1000, tss3: 5 * 60 * 1000, save_area_x: 0, temp_save_area1_x: 500, temp_save_area2_x: 650, temp_save_area3_x: 800, self_element_area_x: 950, others_element_area_x: 1100, all_area_top_y: 50, all_area_bottom_y:980, disp_element_num:8};
 const common_save = {element:[], workspace:[]};
 
 function detect_area(_x) {
@@ -37,9 +37,10 @@ class Menu extends React.Component{
     return (
     <div className="control">
     <ul className="control_ul">
-    <li><strong>M-TC</strong></li>
+    <li>Text流しそうめん </li>
     <li>{con_disp}</li>
     <li><a href="http://localhost:8080/element_input" target="_blank">element_admin</a></li>
+    <li><a href="http://localhost:8080/presentation" target="_blank">presentation</a></li>
     <li><a href="#" onClick={this.props.onClick}>save</a></li>
     </ul>
     </div>
@@ -350,9 +351,10 @@ class App extends React.Component {
     this.socket.on('load', function (_data) {
       console.log(_data);
       self.inputRef = [];
-      for(let i = 0; i < _data.kne_element.length; i++){
+      for(let i = 0; i < _data.workspace.length + common.disp_element_num; i++){
         self.inputRef.push(React.createRef());
       }
+      console.log(self.inputRef.length);
       self.upload_save(_data);
       self.setState({loaded:true});
     });
@@ -368,17 +370,24 @@ class App extends React.Component {
       }
       console.log(work_ids);
 
-      for (let i = 0; i < common_save.element.length; i++) {
+      let di = 0;
+      let ri = 0;
+      for (let i = common_save.element.length - 1; i >= 0; i--) {
         let wi = work_ids.indexOf(common_save.element[i].id);
         if (wi >= 0) {
           drawrnds.push(
-            <Drawrnd key={i} ref={this.inputRef[i]} element_info={common_save.element[i]} position={[common_save.workspace[wi][1], common_save.workspace[wi][2]]} />
+            <Drawrnd key={i} ref={this.inputRef[ri]} element_info={common_save.element[i]} position={[common_save.workspace[wi][1], common_save.workspace[wi][2]]} />
           )
+          ri++;
         } else {
+          if(di < common.disp_element_num){
           drawrnds.push(
-            <Drawrnd key={i} ref={this.inputRef[i]} element_info={common_save.element[i]} position={0} />
+            <Drawrnd key={i} ref={this.inputRef[ri]} element_info={common_save.element[i]} position={0} />
           )
+            ri++;
+            di++;
         }
+      }
       }
     }
     return (
@@ -394,6 +403,7 @@ class App extends React.Component {
             return drawrnds
           }
         })()}
+        respect for textcomposter
       </div>
 
     );

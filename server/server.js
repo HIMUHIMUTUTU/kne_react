@@ -4,6 +4,7 @@ var socket = require('socket.io');
 var dirty = require('dirty');
 var bodyParser = require('body-parser');
 var element_input = require('./routes/element_input');
+var presentation = require('./routes/presentation');
 var app = express();
 
 // view engine setup
@@ -14,6 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/element_input', element_input);
+app.use('/presentation', presentation);
 
 server = app.listen(8080, function(){
     console.log('server is running on port 8080')

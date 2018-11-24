@@ -14,6 +14,13 @@
 
 #db
 /server/kne_element.db
+/server/element.db
+/server/file.db
+/server/user.db
+/server/add_value_server.js
+
+#element_data_set
+/data/
 
 #test
 /test
